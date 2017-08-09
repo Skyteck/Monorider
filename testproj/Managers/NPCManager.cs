@@ -22,11 +22,12 @@ namespace MonoRider.Managers
         Texture2D oilTex;
         Texture2D shieldTex;
 
+        public int _BaseSpeed;
 
-        int Lane1 = 120;
-        int Lane2 = 145;
-        int Lane3 = 185;
-        int Lane4 = 210;
+        int Lane1 = 110;
+        int Lane2 = 140;
+        int Lane3 = 180;
+        int Lane4 = 215;
 
         public NPCManager(ContentManager content, Player player)
         {
@@ -44,7 +45,7 @@ namespace MonoRider.Managers
             carTex = c.Load<Texture2D>("car2");
             gearTex = c.Load<Texture2D>("gear1");
             oilTex = c.Load<Texture2D>("oil");
-            shieldTex = c.Load<Texture2D>("car2");
+            shieldTex = c.Load<Texture2D>("shield");
         }
 
         public void CreateNPC(Enums.SpriteTags type, int amt = 1)

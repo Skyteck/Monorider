@@ -81,6 +81,7 @@ namespace MonoRider
                 background = CM_Play.Load<Texture2D>("grassBackground");
                 _PlayerManager.LoadContent(CM_Play.Load<Texture2D>("car1"));
                 _PlayerManager.PlacePlayer(new Vector2(midPoint, 320));
+                _PlayerManager._GearsCollected = 0;
                 _NPCManager.LoadContent(CM_Play);
                 wheel.LoadContent("wheel", CM_Play);
                 wheel._Position = new Vector2(160, 520);
@@ -122,6 +123,7 @@ namespace MonoRider
                 if (!paused)
                 {
                     _PlayerManager.Update(gameTime);
+                    _NPCManager._BaseSpeed = _PlayerManager._GearsCollected + 40;
                     _NPCManager.UpdateNPCs(gameTime);
                     _WorldManager.Update(gameTime);
                     wheel.Update(gameTime, _PlayerManager._Momentum);

@@ -14,12 +14,28 @@ namespace MonoRider.GameObjects.Fallers
         bool _CarFront = false;
         bool _CarLeft = false;
         bool _CarRight = false;
+        bool _MovingRight = false;
+        bool _MovingLeft = false;
         int _TargetSpeed;
+
+
+        enum CurrentLane
+        {
+            kLane1 = 110,
+            kLane2 = 140,
+            kLane3 = 180,
+            kLane4 = 215,
+            kLaneNone
+        }
+
+        CurrentLane _CurrentLane = CurrentLane.kLane1;
+        CurrentLane _TargetLane = CurrentLane.kLaneNone;
+
         public Rectangle _FrontRect
         {
             get
             {
-                return new Rectangle((int)_TopLeft.X, ((int)_TopLeft.Y ), frameWidth, frameHeight * 3);
+                return new Rectangle((int)_TopLeft.X, (int)_TopLeft.Y + frameWidth, frameWidth, frameHeight);
             }
         }
 
@@ -27,7 +43,7 @@ namespace MonoRider.GameObjects.Fallers
         {
             get
             {
-                return new Rectangle((int)_TopLeft.X - frameWidth, ((int)_TopLeft.Y - frameHeight), frameWidth + (frameWidth), frameHeight * 3);
+                return new Rectangle((int)_TopLeft.X - frameWidth, ((int)_TopLeft.Y), frameWidth, frameHeight);
             }
         }
 
@@ -35,7 +51,7 @@ namespace MonoRider.GameObjects.Fallers
         {
             get
             {
-                return new Rectangle((int)_TopLeft.X + (frameWidth), ((int)_TopLeft.Y - frameHeight), frameWidth, frameHeight * 3);
+                return new Rectangle((int)_TopLeft.X + (frameWidth), ((int)_TopLeft.Y), frameWidth, frameHeight);
             }
         }
 
@@ -54,6 +70,10 @@ namespace MonoRider.GameObjects.Fallers
 
         public override void UpdateActive(GameTime gameTime)
         {
+            if(_CurrentState == SpriteState.kStateInActive)
+            {
+                return;
+            }
             base.UpdateActive(gameTime);
             UpdateCorners();
             List<EnemyCar> otherCars = _NPCManager._Cars.FindAll(x => x._Tag == Enums.SpriteTags.kCarType && x != this).ToList();
@@ -66,48 +86,110 @@ namespace MonoRider.GameObjects.Fallers
                 else if (this._LeftRect.Intersects(car._BoundingBox))
                 {
                     _CarLeft = true;
-                    car._CarRight = true;
 
                 }
                 else if (this._RightRect.Intersects(car._BoundingBox))
                 {
                     _CarRight = true;
-                    car._CarLeft = true;
                 }
-
+                if(this._BoundingBox.Intersects(car._BoundingBox))
+                {
+                    car.Deactivate();
+                    this.Deactivate();
+                    return;
+                }
             }
 
             //Car in front of us
             if(_CarFront)
             {
-                _SpeedBonus -= 10;
-                if (_SpeedBonus + _BaseSpeed < 0)
-                {
-                    _SpeedBonus = -_BaseSpeed;
-                }
-                ////can we move right to pass?
+                _SpeedBonus -= 30;
+                //// car to right?
                 //if (!_CarRight)
                 //{
-                //    this._Position.X += 1;
+                //    if(_CurrentLane == CurrentLane.kLane1)
+                //    {
+                //        _TargetLane = CurrentLane.kLane2;
+                //        _MovingRight = true;
+                //        _MovingLeft = false;
+                //    }
+                //    else if (_CurrentLane == CurrentLane.kLane2)
+                //    {
+                //        _TargetLane = CurrentLane.kLane3;
+                //        _MovingRight = true;
+                //        _MovingLeft = false;
+                //    }
+                //    else if (_CurrentLane == CurrentLane.kLane3)
+                //    {
+                //        _TargetLane = CurrentLane.kLane4;
+                //        _MovingRight = true;
+                //        _MovingLeft = false;
+                //    }
+                //    else if(!_CarLeft && _CurrentLane == CurrentLane.kLane4)
+                //    {
+                //        _TargetLane = CurrentLane.kLane3;
+                //        _MovingRight = false;
+                //        _MovingLeft = true;
+                //    }
+                //    else
+                //    {
+                //        _MovingRight = false;
+                //        _MovingLeft = false;
+                //    }
                 //}
-                ////okay, car to the right also. can we move left?
-                //else if(!_CarLeft)
+                //else if (!_CarLeft)
                 //{
-                //    this._Position.X -= 1;
+                //    if (_CurrentLane == CurrentLane.kLane4)
+                //    {
+                //        _TargetLane = CurrentLane.kLane3;
+                //        _MovingRight = false;
+                //        _MovingLeft = true;
+                //    }
+                //    else if (_CurrentLane == CurrentLane.kLane3)
+                //    {
+                //        _TargetLane = CurrentLane.kLane2;
+                //        _MovingRight = false;
+                //        _MovingLeft = true;
+                //    }
+                //    else if (_CurrentLane == CurrentLane.kLane2)
+                //    {
+                //        _TargetLane = CurrentLane.kLane1;
+                //        _MovingRight = false;
+                //        _MovingLeft = true;
+                //    }
+                //    else if (!_CarRight && _CurrentLane == CurrentLane.kLane1)
+                //    {
+                //        _TargetLane = CurrentLane.kLane2;
+                //        _MovingRight = true;
+                //        _MovingLeft = false;
+                //    }
+                //    else
+                //    {
+                //        _MovingRight = false;
+                //        _MovingLeft = false;
+                //    }
                 //}
-                ////okay, car in front, right, and left. slow down.
-                //if(_CarRight && !_CarLeft)
+                //else if(_CarLeft && _CarRight)
                 //{
-
+                //    _SpeedBonus -= 30;
                 //}
             }
+            //ChangeLane();
 
-            if((_SpeedBonus+_BaseSpeed) < _TargetSpeed)
+            if (_SpeedBonus + _NPCManager._BaseSpeed < 0)
+            {
+                _SpeedBonus = -_NPCManager._BaseSpeed;
+            }
+
+            if ((_SpeedBonus+_BaseSpeed) < _TargetSpeed)
             {
                 _SpeedBonus += 1;
             }
 
-
+            if(this._Position.X < (int)CurrentLane.kLane1-10 || this._Position.X > (int)CurrentLane.kLane4+10)
+            {
+                Console.WriteLine("Lol wtf?");
+            }
             _CarFront = false;
             _CarLeft = false;
             _CarRight = false;
@@ -117,11 +199,32 @@ namespace MonoRider.GameObjects.Fallers
         {
             Random num = new Random(int.Parse(Guid.NewGuid().ToString().Substring(0, 8), System.Globalization.NumberStyles.HexNumber));
             Color newColor = new Color(num.Next(255), num.Next(255), num.Next(255), 255);
-            _SpeedBonus = num.Next(100);
-            _TargetSpeed = _SpeedBonus + _BaseSpeed;
+            _SpeedBonus = num.Next(50);
+            _TargetSpeed = _SpeedBonus + _NPCManager._BaseSpeed;
             _MyColor = newColor;
             ChangeColor(_MyColor, newColor);
             base.Activate();
+        }
+
+        public override void Activate(Vector2 pos)
+        {
+            base.Activate(pos);
+            if((int)pos.X == (int)CurrentLane.kLane1)
+            {
+                _CurrentLane = CurrentLane.kLane1;
+            }
+            else if ((int)pos.X == (int)CurrentLane.kLane2)
+            {
+                _CurrentLane = CurrentLane.kLane2;
+            }
+            else if ((int)pos.X == (int)CurrentLane.kLane3)
+            {
+                _CurrentLane = CurrentLane.kLane3;
+            }
+            else if ((int)pos.X == (int)CurrentLane.kLane4)
+            {
+                _CurrentLane = CurrentLane.kLane4;
+            }
         }
 
         public override void UpdateCorners()
@@ -130,6 +233,54 @@ namespace MonoRider.GameObjects.Fallers
             for (int i = 0; i < corners.Count; i++)
             {
                 corners[i].Activate(new Vector2(myCorners[i].X, myCorners[i].Y));
+            }
+        }
+
+        private void ChangeLane()
+        {
+            if(_TargetLane == CurrentLane.kLaneNone)
+            {
+                return;
+            }
+            if(_MovingRight)
+            {
+                if(_CurrentLane != _TargetLane)
+                {
+                    if(!_CarRight)
+                    {
+                        this._Position.X += 1;
+
+                    }
+                    else
+                    {
+                        _TargetLane = _CurrentLane;
+                        _MovingLeft = true;
+                        _MovingRight = false;
+                    }
+
+                }
+            }
+            else if(_MovingLeft)
+            {
+                if(_CurrentLane != _TargetLane)
+                {
+                    if (!_CarLeft)
+                    {
+                        this._Position.X -= 1;
+
+                    }
+                    else
+                    {
+                        _TargetLane = _CurrentLane;
+                        _MovingLeft = false;
+                        _MovingRight = true;
+                    }
+                }
+            }
+            if ((int)this._Position.X == (int)_TargetLane)
+            {
+                _CurrentLane = _TargetLane;
+                _TargetLane = CurrentLane.kLaneNone;
             }
         }
     }

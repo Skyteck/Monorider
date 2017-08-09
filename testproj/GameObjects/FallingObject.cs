@@ -23,7 +23,7 @@ namespace MonoRider.GameObjects
         {
             if (_CurrentState != SpriteState.kStateActive) return;
 
-            _Position.Y += (_BaseSpeed + _SpeedBonus) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _Position.Y += (_NPCManager._BaseSpeed + _SpeedBonus) * (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (_Position.Y > 500)
             {
                 this.Deactivate();
